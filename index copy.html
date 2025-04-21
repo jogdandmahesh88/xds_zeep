@@ -1,0 +1,357 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XDS Client UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.12.0/cdn.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" defer></script>
+    <style>
+        body {
+            background: url('https://ai-techpark.com/wp-content/uploads/2023/04/GE-HealthCare.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .overlay {
+            background: rgba(0, 0, 0, 0.5);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .slide-up {
+            animation: slideUp 0.8s ease-in-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .content-container {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: bounce 1.5s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="relative text-white min-h-screen flex flex-col items-center justify-center p-6 fade-in" x-data="{ page: 'home' }">
+    <div class="overlay"></div>
+    <h1 class="text-4xl font-extrabold mb-8 animate-pulse relative slide-up">XDS Client UI</h1>
+    
+    <div class="button-container slide-up">
+        <button @click="page = 'find'" class="px-6 py-3 bg-white text-gray-800 rounded-lg shadow-lg hover:bg-blue-600 hover:text-white transition-transform transform hover:scale-110 duration-300">
+            <i class="fas fa-search icon"></i>
+            Find Document
+        </button>
+        <button @click="page = 'retrieve'" class="px-6 py-3 bg-white text-gray-800 rounded-lg shadow-lg hover:bg-blue-600 hover:text-white transition-transform transform hover:scale-110 duration-300">
+            <i class="fas fa-download icon"></i>
+            Retrieve Document
+        </button>
+        <button @click="page = 'get'" class="px-6 py-3 bg-white text-gray-800 rounded-lg shadow-lg hover:bg-blue-600 hover:text-white transition-transform transform hover:scale-110 duration-300">
+            <i class="fas fa-file icon"></i>
+            Get Document
+        </button>
+    </div>
+    
+    <div class="content-container">
+        <div x-show="page === 'find'" class="w-full max-w-lg bg-white bg-opacity-90 p-6 rounded-xl shadow-lg text-gray-800 relative slide-up">
+            <i class="fas fa-search icon text-blue-600"></i>
+            <h2 class="text-xl font-bold mb-4">Find Document</h2>
+            <input type="text" id="patientId" placeholder="Enter Patient ID" class="w-full p-2 mb-4 border rounded">
+            <button onclick="findDocument()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Find</button>
+        </div>
+        
+        <div x-show="page === 'retrieve'" class="w-full max-w-lg bg-white bg-opacity-90 p-6 rounded-xl shadow-lg text-gray-800 relative slide-up">
+            <i class="fas fa-download icon text-blue-600"></i>
+            <h2 class="text-xl font-bold mb-4">Retrieve Document</h2>
+            <textarea id="docIds" placeholder="Enter Document Unique IDs (comma-separated)" class="w-full p-2 mb-4 border rounded"></textarea>
+            <button onclick="retrieveDocument()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Retrieve</button>
+        </div>
+        
+        <div x-show="page === 'get'" class="w-full max-w-lg bg-white bg-opacity-90 p-6 rounded-xl shadow-lg text-gray-800 relative slide-up">
+            <i class="fas fa-file icon text-blue-600"></i>
+            <h2 class="text-xl font-bold mb-4">Get Document</h2>
+            <input type="text" id="getDocId" placeholder="Enter Document Unique ID" class="w-full p-2 mb-4 border rounded">
+            <button onclick="getDocument()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Get</button>
+        </div>
+    </div>
+    
+    <h3 class="text-xl font-bold mt-8 relative slide-up">Response Console</h3>
+    <pre id="response" class="bg-gray-800 bg-opacity-50 text-green-400 p-4 rounded-lg w-full max-w-lg overflow-auto h-40 relative slide-up"></pre>
+</body>
+</html>
+
+    <script>
+        async function findDocument() {
+            const patientId = document.getElementById("patientId").value;
+            const response = await fetch("http://127.0.0.1:5002/find_document", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ XDSDocumentEntryPatientId: patientId })
+            });
+            document.getElementById("response").innerText = await response.text();
+        }
+        
+        async function retrieveDocument() {
+            // const repoId = document.getElementById("repoId").value;
+            const docIds = document.getElementById("docIds").value.split(',').map(id => id.trim());
+            const response = await fetch("http://127.0.0.1:5002/retrieve_document", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ DocumentUniqueIds: docIds })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob(); // Get the PDF as a Blob
+                const url = URL.createObjectURL(blob); // Create a URL for the Blob
+                window.open(url, "_blank"); // Open the PDF in a new tab
+                document.getElementById("response").innerText = "PDF retrieved successfully!";
+            } else {
+                document.getElementById("response").innerText = await response.text();
+            }
+        }
+        
+        async function getDocument() {
+            const docId = document.getElementById("getDocId").value;
+            const response = await fetch("http://127.0.0.1:5002/get_document", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ XDSDocumentEntryEntryUUID: docId }) // Change key to match API
+            });
+            document.getElementById("response").innerText = await response.text();
+        }
+    </script>
+</body>
+</html> -->
+
+
+<!-- #below code is trying for changes suggested by the Nitin Sir -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Retrieval</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #e3f2fd; /* Light Blue Background */
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .card {
+            text-align: center;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .btn-primary {
+            width: 100%;
+            transition: background-color 0.3s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .document-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .document-list .card {
+            flex: 1 1 calc(25% - 10px);
+            padding: 15px;
+            opacity: 0;
+            animation: slideUp 0.5s ease-in-out forwards;
+        }
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .selected-card {
+            background-color: #d1ecf1; /* Light blue background for selected card */
+            border: 2px solid #0c5460; /* Darker border for emphasis */
+            transition: background-color 0.3s ease, border 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3 class="text-center mb-4">Document Retrieval System</h3>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" class="form-control" placeholder="Enter Patient ID" id="patientId">
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-primary" id="getDocument">GET DOCUMENT</button>
+            </div>
+        </div>
+        <div class="container mt-4">
+            <h5>Upload a Document:</h5>
+            <input type="file" id="fileInput" class="form-control mb-2">
+            <button class="btn btn-primary w-100" id="uploadFile">UPLOAD FILE</button>
+            <p id="uploadStatus" class="mt-2"></p>
+        </div>
+
+        <h5>Document IDs:</h5>
+        <div class="document-list" id="documentList"></div>
+
+        <div class="card p-3 mt-3" id="documentDetails" style="display: none;">
+            <h6>Document Details</h6>
+            <p><strong>Repository Unique Id:</strong> <span id="repoId"></span></p>
+            <p><strong>Document Unique Id:</strong> <span id="docId"></span></p>
+            <button class="btn btn-primary" id="downloadButton">DOWNLOAD</button>
+            <p id="response" class="mt-2"></p>
+        </div>
+    </div>
+
+    <script>
+        // Function to find documents based on Patient ID
+        async function findDocument() {
+            const patientId = document.getElementById("patientId").value;
+            if (!patientId) {
+                alert("Please enter a Patient ID");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:5002/find_document", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ XDSDocumentEntryPatientId: patientId })
+                });
+
+                const data = await response.json();
+                const documentList = document.getElementById("documentList");
+                documentList.innerHTML = ""; // Clear previous list
+
+                if (!data["Documents"] || data["Documents"].length === 0) {
+                    documentList.innerHTML = "<p>No documents found.</p>";
+                    return;
+                }
+
+                // Create clickable document IDs with mimeType and value
+                data["Documents"].forEach(doc => {
+                    const card = document.createElement("div");
+                    card.className = "card p-2";
+                    card.innerHTML = `<strong>ID:</strong> ${doc.id} <br> 
+                                    <strong>Type:</strong> ${doc.mimeType} <br> 
+                                    <strong>Title:</strong> ${doc.Title}`;
+                    card.addEventListener("click", function() {
+                        selectDocument(doc.id, card); // Pass the card element to highlight it
+                    });
+                    documentList.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error fetching documents:", error);
+            }
+        }
+
+        // Function to fetch unique Document ID and highlight the selected card
+        async function selectDocument(docId, cardElement) {
+            try {
+                // Highlight the selected card
+                const cards = document.querySelectorAll(".document-list .card");
+                cards.forEach(card => card.classList.remove("selected-card")); // Remove highlight from all cards
+                cardElement.classList.add("selected-card"); // Add highlight to the selected card
+
+                const response = await fetch("http://127.0.0.1:5002/get_document", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ XDSDocumentEntryEntryUUID: docId })
+                });
+
+                const data = await response.json();
+                console.log("Backend response:", data); // Debugging log
+
+                if (response.ok) {
+                    document.getElementById("docId").innerText = data.Document_uniqueId; // Display unique ID
+                    document.getElementById("repoId").innerText = data.RepositoryUniqueId; // Correct key reference
+                    document.getElementById("documentDetails").style.display = "block"; // Show details section
+                    document.getElementById("downloadButton").dataset.docId = data.Document_uniqueId; // Store ID in button
+                } else {
+                    alert("Error fetching document details");
+                }
+            } catch (error) {
+                console.error("Error retrieving document:", error);
+            }
+        }
+
+        // Function to retrieve and download the document (PDF)
+        async function retrieveDocument() {
+            const docId = document.getElementById("downloadButton").dataset.docId; // Get stored docId
+            if (!docId) {
+                alert("No document selected!");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:5002/retrieve_document", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ DocumentUniqueIds: [docId] }) // Send selected document ID
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob(); // Get the PDF as a Blob
+                    const url = URL.createObjectURL(blob); // Create a URL for the Blob
+                    window.open(url, "_blank"); // Open the PDF in a new tab
+                    document.getElementById("response").innerText = "PDF retrieved successfully!";
+                } else {
+                    document.getElementById("response").innerText = await response.text();
+                }
+            } catch (error) {
+                console.error("Error retrieving document:", error);
+                document.getElementById("response").innerText = "Error retrieving document.";
+            }
+        }
+
+        // Event Listeners
+        document.getElementById("getDocument").addEventListener("click", findDocument);
+        document.getElementById("downloadButton").addEventListener("click", retrieveDocument);
+    </script>
+</body>
+</html>
